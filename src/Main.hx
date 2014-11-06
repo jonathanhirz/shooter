@@ -3,10 +3,13 @@ import luxe.AppConfig;
 import luxe.Sprite;
 import luxe.Color;
 import luxe.Vector;
+import phoenix.Texture;
 
 class Main extends luxe.Game {
 
+    var playerTex : Texture;
     var player : Sprite;
+    var moveSpeed : Float = 200.0;
 
     override function config( config:AppConfig ) {
 
@@ -25,8 +28,10 @@ class Main extends luxe.Game {
     } //config
 
     override function ready() {
+        playerTex = Luxe.loadTexture("assets/player.png");
         player = new Sprite({
-            color : new Color().rgb(0xffffff),
+            // color : new Color().rgb(0xffffff),
+            texture : playerTex,
             pos : Luxe.screen.mid,
             size : new Vector(50, 50)
         }); //player
@@ -34,6 +39,23 @@ class Main extends luxe.Game {
         connect_input();
 
     } //ready
+
+    override function update( dt:Float ) {
+        if(Luxe.input.inputdown('up')) {
+            player.pos.y -= moveSpeed * dt;
+        }
+        if(Luxe.input.inputdown('right')) {
+            player.pos.x += moveSpeed * dt;
+        }
+        if(Luxe.input.inputdown('down')) {
+            player.pos.y += moveSpeed * dt;
+        }
+        if(Luxe.input.inputdown('left')) {
+            player.pos.x -= moveSpeed * dt;
+        }
+
+
+    } //update
 
     function connect_input() {
         // add WASD and arrow keys to input
@@ -54,10 +76,5 @@ class Main extends luxe.Game {
         }
 
     } //onkeyup
-
-    override function update( dt:Float ) {
-
-    } //update
-
 
 } //Main
