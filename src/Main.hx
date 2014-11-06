@@ -11,7 +11,8 @@ class Main extends luxe.Game {
     var player : Sprite;
     var reticuleTex : Texture;
     var reticule : Sprite;
-    var moveSpeed : Float = 200.0;
+    var reticuleDist : Float = 50.0;
+    var moveSpeed : Float = 300.0;
     var mousePos : Vector;
 
     override function config( config:AppConfig ) {
@@ -32,11 +33,10 @@ class Main extends luxe.Game {
 
     override function ready() {
 
-        Luxe.screen.cursor.visible = false;
+        // Luxe.screen.cursor.visible = false;
 
         playerTex = Luxe.loadTexture("assets/player.png");
         player = new Sprite({
-            // color : new Color().rgb(0xffffff),
             texture : playerTex,
             size : new Vector(50, 50),
             pos : Luxe.screen.mid
@@ -69,13 +69,18 @@ class Main extends luxe.Game {
             player.pos.x -= moveSpeed * dt;
         }
 
+        var diffX : Float = player.pos.x - mousePos.x;
+        var diffY : Float = player.pos.y - mousePos.y;
+        var angle : Float = Math.atan2(diffY, diffX);
+        reticule.rotation_z = angle * (180 / Math.PI) - 90;
+        reticule.pos = new Vector(player.pos.x - reticuleDist * Math.cos(angle), player.pos.y - reticuleDist * Math.sin(angle));
 
     } //update
 
     override function onmousemove( e:MouseEvent ) {
         mousePos = e.pos;
-        reticule.pos = mousePos;
-    }
+
+    } //onmousemove
 
     function connect_input() {
         // add WASD and arrow keys to input
