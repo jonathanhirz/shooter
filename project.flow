@@ -1,0 +1,23 @@
+{
+    project : {
+        name : 'shooter',
+        version : '1.0.0',
+        author : 'Jonathan Hirz',
+
+        app : {
+            name : 'shooter',
+            package : 'com.jonathanhirz.shooter'
+        },
+
+        build : {
+            dependencies : {
+                luxe : '*',
+            }
+        },
+
+        files : {
+            config: 'config.json',
+            assets : 'assets/'
+        }
+    }
+}
