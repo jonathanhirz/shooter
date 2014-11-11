@@ -11,7 +11,7 @@ class Main extends luxe.Game {
     var player : Sprite;
     var reticuleTex : Texture;
     var reticule : Sprite;
-    var reticuleDist : Float = 50.0;
+    var reticuleDist : Float = 25.0;
     var moveSpeed : Float = 300.0;
     var mousePos : Vector;
 
@@ -34,24 +34,20 @@ class Main extends luxe.Game {
     override function ready() {
 
         // Luxe.screen.cursor.visible = false;
+        connect_input();
+        mousePos = new Vector();
 
         playerTex = Luxe.loadTexture("assets/player.png");
         player = new Sprite({
             texture : playerTex,
-            size : new Vector(50, 50),
             pos : Luxe.screen.mid
         }); //player
-
-        connect_input();
-        mousePos = new Vector();
 
         reticuleTex = Luxe.loadTexture("assets/reticule.png");
         reticule = new Sprite({
             texture : reticuleTex,
-            size : new Vector(25, 25),
-            pos : mousePos
-        }); //retucule
-
+            pos : player.pos
+        }); //reticule
 
     } //ready
 
