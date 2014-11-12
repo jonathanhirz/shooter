@@ -4,6 +4,7 @@ import luxe.Sprite;
 import luxe.Color;
 import luxe.Vector;
 import phoenix.Texture;
+import luxe.utils.Maths;
 
 class Main extends luxe.Game {
 
@@ -12,8 +13,17 @@ class Main extends luxe.Game {
     var reticuleTex : Texture;
     var reticule : Sprite;
     var reticuleDist : Float = 25.0;
+    var bulletTex : Texture;
+    var bulletPool : Array<Sprite>;
+    var bulletPoolSize : Int = 20;
     var moveSpeed : Float = 300.0;
     var mousePos : Vector;
+
+    var isFiring : Bool = false;
+    var nextFire : Float = 0.0;
+    var fireRate : Float = 0.5;
+    var currentBullet : Int = 0;
+
 
     override function config( config:AppConfig ) {
 
@@ -49,6 +59,22 @@ class Main extends luxe.Game {
             pos : player.pos
         }); //reticule
 
+        bulletPool = [];
+        bulletTex = Luxe.loadTexture("assets/bullet.png");
+        for(i in 0...bulletPoolSize) {
+            var bullet = new Sprite({
+                name : "bullet",
+                name_unique : true,
+                texture : bulletTex,
+                visible : false
+
+            }); //bullet
+
+            bullet.add(new BulletComponent({name : "bullet" }));
+
+            bulletPool.push(bullet);
+        }
+
     } //ready
 
     override function update( dt:Float ) {
@@ -71,12 +97,47 @@ class Main extends luxe.Game {
         reticule.rotation_z = angle * (180 / Math.PI) - 90;
         reticule.pos = new Vector(player.pos.x - reticuleDist * Math.cos(angle), player.pos.y - reticuleDist * Math.sin(angle));
 
+        if(isFiring) {
+            if(Luxe.time > nextFire) {
+                fire();
+                nextFire = Luxe.time + fireRate;
+            }
+        }
+
     } //update
+
+    function fire() {
+        currentBullet++;
+        if(currentBullet > bulletPoolSize - 1) {
+            currentBullet = 0;
+        } // reset to the beginning of the pool
+
+        var bullet = bulletPool[currentBullet];
+        bullet.pos = reticule.pos;
+        bullet.rotation_z = reticule.rotation_z;
+        bullet.visible = true;
+
+        var component : BulletComponent = bullet.get("bullet");
+        component.alive = true;
+        component.direction.x = Math.cos(Maths.radians(bullet.rotation_z - 90) * 1);
+        component.direction.y = Math.sin(Maths.radians(bullet.rotation_z - 90) * 1);
+
+    } //fire
 
     override function onmousemove( e:MouseEvent ) {
         mousePos = e.pos;
 
     } //onmousemove
+
+    override function onmousedown( e:MouseEvent) {
+        isFiring = true;
+
+    } //onmousedown
+
+    override function onmouseup( e:MouseEvent ) {
+        isFiring = false;
+
+    } //onmouseup
 
     function connect_input() {
         // add WASD and arrow keys to input
