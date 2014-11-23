@@ -9,19 +9,22 @@ import luxe.utils.Maths;
 class Main extends luxe.Game {
 
     var playerTex : Texture;
-    var player : Sprite;
+    public var player : Sprite;
     var reticuleTex : Texture;
     var reticule : Sprite;
     var reticuleDist : Float = 25.0;
     var bulletTex : Texture;
     var bulletPool : Array<Sprite>;
-    var bulletPoolSize : Int = 20;
-    var moveSpeed : Float = 300.0;
+    var bulletPoolSize : Int = 30;
+    var moveSpeed : Float = 400.0;
     var mousePos : Vector;
+
+    var enemyPool : Array<Sprite>;
+    var enemyPoolSize : Int = 20;
 
     var isFiring : Bool = false;
     var nextFire : Float = 0.0;
-    var fireRate : Float = 0.5;
+    var fireRate : Float = 0.1;
     var currentBullet : Int = 0;
 
 
@@ -50,7 +53,8 @@ class Main extends luxe.Game {
         playerTex = Luxe.loadTexture("assets/player.png");
         player = new Sprite({
             texture : playerTex,
-            pos : Luxe.screen.mid
+            pos : Luxe.screen.mid,
+            name : "player"
         }); //player
 
         reticuleTex = Luxe.loadTexture("assets/reticule.png");
@@ -71,24 +75,49 @@ class Main extends luxe.Game {
             }); //bullet
 
             bullet.add(new BulletComponent({name : "bullet" }));
-
             bulletPool.push(bullet);
-        }
+
+        } //bulletPool
+
+        enemyPool = [];
+        for(i in 0...enemyPoolSize) {
+            var enemy = new Sprite({
+                name : "enemy",
+                name_unique : true,
+                visible : true,
+                pos : new Vector(25*i, 0),
+                size : new Vector(20, 20),
+                color : new Color().rgb(0xb70028)
+            }); //enemy
+
+            enemy.add(new EnemyComponent({name : "enemy" }));
+            enemyPool.push(enemy);
+
+        } //enemyPool
+
 
     } //ready
 
     override function update( dt:Float ) {
         if(Luxe.input.inputdown('up')) {
-            player.pos.y -= moveSpeed * dt;
+            if(player.pos.y > 0) {
+                player.pos.y -= moveSpeed * dt;
+            }
         }
         if(Luxe.input.inputdown('right')) {
-            player.pos.x += moveSpeed * dt;
+            if(player.pos.x < Luxe.screen.w) {
+                player.pos.x += moveSpeed * dt;
+            }
         }
         if(Luxe.input.inputdown('down')) {
-            player.pos.y += moveSpeed * dt;
+            if(player.pos.y < Luxe.screen.h) {
+                player.pos.y += moveSpeed * dt; 
+            }
         }
         if(Luxe.input.inputdown('left')) {
-            player.pos.x -= moveSpeed * dt;
+            if(player.pos.x > 0) {
+                player.pos.x -= moveSpeed * dt;
+            }
         }
 
         var diffX : Float = player.pos.x - mousePos.x;
