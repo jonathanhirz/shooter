@@ -1,13 +1,20 @@
+using StringTools;
+
 import luxe.Component;
 import luxe.Sprite;
 import luxe.Vector;
 import luxe.Rectangle;
+import luxe.collision.Collision;
+import luxe.collision.CollisionData;
+import luxe.collision.shapes.Shape;
+import luxe.collision.shapes.Circle;
 
 class BulletComponent extends Component {
 
     var sprite : Sprite;
     var bulletSpeed : Float = 15.0;
     var bounds : Rectangle;
+    var collider : Circle;
 
     public var alive : Bool = false;
     public var direction : Vector;
@@ -19,6 +26,8 @@ class BulletComponent extends Component {
         sprite = cast entity;
         direction = new Vector();
         bounds = new Rectangle(0, 0, Luxe.screen.w, Luxe.screen.h);
+        collider = new Circle(pos.x, pos.y, 4);
+        collider.name = "bulletCollider";
 
     } //init
 
@@ -30,6 +39,24 @@ class BulletComponent extends Component {
             var newy = sprite.pos.y + (direction.y * bulletSpeed);
 
             sprite.pos = new Vector(newx, newy);
+            collider.x = newx;
+            collider.y = newy;
+
+            //for each bullet (single component), roll through the pool of enemy colliders
+            //if this shape hits one of those colliders, explosion, call enemy.resetEnemy()
+            var results : Array<CollisionData> = Collision.testShapes(collider, Main.enemyColliderPool);
+            if(results.length > 0) {
+                for(collision in results) {
+                    for(collider in Main.enemyColliderPool) {
+                        if(collision.shape2.name == collider.name) {
+                            var hitEnemy : Sprite = cast Luxe.scene.entities.get(collider.name.replace("Collider", ""));
+                            var enemyComp : EnemyComponent = hitEnemy.get("enemy");
+                            enemyComp.wasHit = true;
+                            enemyComp.resetEnemy();
+                        }
+                    }
+                }
+            }
 
             if(!bounds.point_inside(sprite.pos)) {
                 kill();

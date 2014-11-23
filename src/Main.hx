@@ -3,6 +3,8 @@ import luxe.AppConfig;
 import luxe.Sprite;
 import luxe.Color;
 import luxe.Vector;
+import luxe.collision.shapes.Shape;
+import luxe.collision.shapes.Circle;
 import phoenix.Texture;
 import luxe.utils.Maths;
 
@@ -21,6 +23,8 @@ class Main extends luxe.Game {
 
     var enemyPool : Array<Sprite>;
     var enemyPoolSize : Int = 20;
+    var enemyCollider : Circle;
+    public static var enemyColliderPool : Array<Shape>;
 
     var isFiring : Bool = false;
     var nextFire : Float = 0.0;
@@ -80,6 +84,7 @@ class Main extends luxe.Game {
         } //bulletPool
 
         enemyPool = [];
+        enemyColliderPool = [];
         for(i in 0...enemyPoolSize) {
             var enemy = new Sprite({
                 name : "enemy",
@@ -89,6 +94,10 @@ class Main extends luxe.Game {
                 size : new Vector(20, 20),
                 color : new Color().rgb(0xb70028)
             }); //enemy
+
+            enemyCollider = new Circle(enemy.pos.x, enemy.pos.y, 4);
+            enemyCollider.name = enemy.name+"Collider";
+            enemyColliderPool.push(enemyCollider);
 
             enemy.add(new EnemyComponent({name : "enemy" }));
             enemyPool.push(enemy);
