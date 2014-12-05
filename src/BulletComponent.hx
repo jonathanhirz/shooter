@@ -15,6 +15,7 @@ class BulletComponent extends Component {
     var bulletSpeed : Float = 15.0;
     var bounds : Rectangle;
     var collider : Circle;
+    var backgroundBoundsHaveBeenSet : Bool = false;
 
     public var alive : Bool = false;
     public var direction : Vector;
@@ -25,14 +26,19 @@ class BulletComponent extends Component {
 
         sprite = cast entity;
         direction = new Vector();
-        bounds = new Rectangle(0, 0, Luxe.screen.w, Luxe.screen.h);
-        collider = new Circle(pos.x, pos.y, 4);
+        collider = new Circle(pos.x, pos.y, 8);
         collider.name = "bulletCollider";
 
     } //init
 
     override function update( dt:Float ) {
         // called every frame for you
+
+        if(Main.backgroundSize != null && !backgroundBoundsHaveBeenSet) {
+            backgroundBoundsHaveBeenSet = true;
+            bounds = new Rectangle(0, 0, Main.backgroundSize.x, Main.backgroundSize.y);
+            // trace("BOUNDS MADE!");
+        }
 
         if(alive) {
             var newx = sprite.pos.x + (direction.x * bulletSpeed);
@@ -53,6 +59,7 @@ class BulletComponent extends Component {
                             var enemyComp : EnemyComponent = hitEnemy.get("enemy");
                             enemyComp.wasHit = true;
                             enemyComp.resetEnemy();
+                            Luxe.camera.shake(8);
                         }
                     }
                 }

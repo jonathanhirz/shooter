@@ -7,9 +7,13 @@ import luxe.collision.shapes.Shape;
 import luxe.collision.shapes.Circle;
 import phoenix.Texture;
 import luxe.utils.Maths;
+import luxe.Rectangle;
 
 class Main extends luxe.Game {
 
+    var backgroundTex : Texture;
+    var background : Sprite;
+    public static var backgroundSize : Vector;
     var playerTex : Texture;
     public var player : Sprite;
     var reticuleTex : Texture;
@@ -22,7 +26,7 @@ class Main extends luxe.Game {
     var mousePos : Vector;
 
     var enemyPool : Array<Sprite>;
-    var enemyPoolSize : Int = 20;
+    var enemyPoolSize : Int = 1;
     var enemyCollider : Circle;
     public static var enemyColliderPool : Array<Shape>;
 
@@ -30,6 +34,10 @@ class Main extends luxe.Game {
     var nextFire : Float = 0.0;
     var fireRate : Float = 0.1;
     var currentBullet : Int = 0;
+
+    var cameraPosMid : Vector;
+    var cameraXBuffer : Int = 100;
+    var cameraYBuffer : Int = 100;
 
 
     override function config( config:AppConfig ) {
@@ -53,18 +61,34 @@ class Main extends luxe.Game {
         // Luxe.screen.cursor.visible = false;
         connect_input();
         mousePos = new Vector();
+        cameraPosMid = new Vector();
+
+        backgroundTex = Luxe.loadTexture("assets/tilemap.png");
+        background = new Sprite({
+            texture : backgroundTex,
+            origin : new Vector(0, 0),
+            pos : new Vector(0, 0),
+            name : "background",
+            depth : 0
+        });
+
+        backgroundTex.onload = checkSize;
+
+        // Luxe.camera.bounds = new Rectangle(0, 0, background.size.x, background.size.y);
 
         playerTex = Luxe.loadTexture("assets/player.png");
         player = new Sprite({
             texture : playerTex,
             pos : Luxe.screen.mid,
-            name : "player"
+            name : "player",
+            depth : 1
         }); //player
 
         reticuleTex = Luxe.loadTexture("assets/reticule.png");
         reticule = new Sprite({
             texture : reticuleTex,
-            pos : player.pos
+            pos : player.pos,
+            depth : 1
         }); //reticule
 
         bulletPool = [];
@@ -74,7 +98,8 @@ class Main extends luxe.Game {
                 name : "bullet",
                 name_unique : true,
                 texture : bulletTex,
-                visible : false
+                visible : false,
+                depth : 1
 
             }); //bullet
 
@@ -92,7 +117,8 @@ class Main extends luxe.Game {
                 visible : true,
                 pos : new Vector(25*i, 0),
                 size : new Vector(20, 20),
-                color : new Color().rgb(0xb70028)
+                color : new Color().rgb(0xb70028),
+                depth : 1
             }); //enemy
 
             enemyCollider = new Circle(enemy.pos.x, enemy.pos.y, 4);
@@ -107,27 +133,32 @@ class Main extends luxe.Game {
 
     } //ready
 
+    public function checkSize(_) {
+        backgroundSize = new Vector(background.size.x, background.size.y);
+    }
+
     override function update( dt:Float ) {
         if(Luxe.input.inputdown('up')) {
-            if(player.pos.y > 0) {
                 player.pos.y -= moveSpeed * dt;
+            if(player.pos.y > 0) {
             }
         }
         if(Luxe.input.inputdown('right')) {
-            if(player.pos.x < Luxe.screen.w) {
                 player.pos.x += moveSpeed * dt;
+            if(player.pos.x < Luxe.screen.w) {
             }
         }
         if(Luxe.input.inputdown('down')) {
-            if(player.pos.y < Luxe.screen.h) {
                 player.pos.y += moveSpeed * dt; 
+            if(player.pos.y < Luxe.screen.h) {
             }
         }
         if(Luxe.input.inputdown('left')) {
-            if(player.pos.x > 0) {
                 player.pos.x -= moveSpeed * dt;
+            if(player.pos.x > 0) {
             }
         }
+
 
         var diffX : Float = player.pos.x - mousePos.x;
         var diffY : Float = player.pos.y - mousePos.y;
@@ -140,6 +171,23 @@ class Main extends luxe.Game {
                 fire();
                 nextFire = Luxe.time + fireRate;
             }
+        }
+
+        cameraPosMid.x = Luxe.camera.pos.x + Luxe.camera.viewport.w / 2;
+        cameraPosMid.y = Luxe.camera.pos.y + Luxe.camera.viewport.h / 2;
+
+        if(player.pos.x > cameraPosMid.x + cameraXBuffer) {
+            Luxe.camera.pos.x += 300 * dt;
+            // Luxe.camera.pos.x = Maths.lerp(Luxe.camera.pos.x, Luxe.camera.pos.x +10, 1.0);
+        }
+        if(player.pos.x < cameraPosMid.x - cameraXBuffer) {
+            Luxe.camera.pos.x -= 300 * dt;
+        }
+        if(player.pos.y > cameraPosMid.y + cameraYBuffer) {
+            Luxe.camera.pos.y += 300 * dt;
+        }
+        if(player.pos.y < cameraPosMid.y - cameraYBuffer) {
+            Luxe.camera.pos.y -= 300 * dt;
         }
 
     } //update
@@ -164,6 +212,7 @@ class Main extends luxe.Game {
 
     override function onmousemove( e:MouseEvent ) {
         mousePos = e.pos;
+        mousePos = Luxe.camera.screen_point_to_world(mousePos);
 
     } //onmousemove
 

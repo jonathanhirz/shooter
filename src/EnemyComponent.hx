@@ -50,17 +50,25 @@ class EnemyComponent extends Component {
 
     public function resetEnemy() {
         var randomSide = Std.random(4);
-        if(randomSide == 0) {
-            sprite.pos = new Vector(Std.random(Std.int(Luxe.screen.w)), -20 - Std.random(10));
+        //top
+        if(randomSide == 0) { 
+            sprite.pos = new Vector(Luxe.camera.pos.x + Std.random(Std.int(Luxe.camera.viewport.w)), Luxe.camera.pos.y -20 - Std.random(10));
+            trace("top");
         }
+        //right
         if(randomSide == 1) {
-            sprite.pos = new Vector(Luxe.screen.w + 20 + Std.random(10), Std.random(Std.int(Luxe.screen.h)));
+            sprite.pos = new Vector(Luxe.camera.pos.x + Luxe.camera.viewport.w + 20 + Std.random(10), Luxe.camera.pos.y + Std.random(Std.int(Luxe.camera.viewport.h)));
+            trace("right");
         }
+        //bottom
         if(randomSide == 2) {
-            sprite.pos = new Vector(Std.random(Std.int(Luxe.screen.w)), Luxe.screen.h + 20 + Std.random(10));
+            sprite.pos = new Vector(Luxe.camera.pos.x + Std.random(Std.int(Luxe.camera.viewport.w)), Luxe.camera.pos.y + Luxe.camera.viewport.h + 20 + Std.random(10));
+            trace("bottom");
         }
+        //left
         if(randomSide == 3) {
-            sprite.pos = new Vector(-20 - Std.random(10), Std.random(Std.int(Luxe.screen.h)));
+            sprite.pos = new Vector(Luxe.camera.pos.x -20 - Std.random(10), Luxe.camera.pos.y + Std.random(Std.int(Luxe.camera.viewport.h)));
+            trace("left");
         }
         if(wasHit) {
             sprite.color = Color.random();
