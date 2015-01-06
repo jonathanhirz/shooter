@@ -8,6 +8,33 @@ import luxe.collision.shapes.Circle;
 import phoenix.Texture;
 import luxe.utils.Maths;
 import luxe.Rectangle;
+import luxe.Text;
+import luxe.States;
+
+
+
+class GameOverState extends State {
+
+    var value : Int;
+
+    public function new ( _name:String, _value:Int ) {
+        super({ name:_name });
+        value = _value;
+    }
+
+    override function onenabled<T>( _data:T ) {
+        var gameOverText = new Text({
+            text : "GAME OVER",
+            align : center,
+            pos : new Vector(Luxe.screen.w/2, Luxe.screen.h/2 - 15)
+        });
+        var finalScoreText = new Text({
+            text : "Score: " + value,
+            align : center,
+            pos : new Vector(Luxe.screen.w/2, Luxe.screen.h/2 + 15)
+        });
+    }
+}
 
 class Main extends luxe.Game {
 
@@ -24,9 +51,11 @@ class Main extends luxe.Game {
     var bulletPoolSize : Int = 30;
     var moveSpeed : Float = 400.0;
     var mousePos : Vector;
+    public static var score : Int = 0;
+    var scoreText : Text;
 
     var enemyPool : Array<Sprite>;
-    var enemyPoolSize : Int = 1;
+    var enemyPoolSize : Int = 10;
     var enemyCollider : Circle;
     public static var enemyColliderPool : Array<Shape>;
 
@@ -38,6 +67,8 @@ class Main extends luxe.Game {
     var cameraPosMid : Vector;
     var cameraXBuffer : Int = 100;
     var cameraYBuffer : Int = 100;
+
+    var machine : States;
 
 
     override function config( config:AppConfig ) {
@@ -63,16 +94,19 @@ class Main extends luxe.Game {
         mousePos = new Vector();
         cameraPosMid = new Vector();
 
-        backgroundTex = Luxe.loadTexture("assets/tilemap.png");
-        background = new Sprite({
-            texture : backgroundTex,
-            origin : new Vector(0, 0),
-            pos : new Vector(0, 0),
-            name : "background",
-            depth : 0
-        });
+        machine = new States({ name:"stateMachine" });
 
-        backgroundTex.onload = checkSize;
+        // backgroundTex = Luxe.loadTexture("assets/tilemap.png");
+        // background = new Sprite({
+        //     texture : backgroundTex,
+        //     origin : new Vector(0, 0),
+        //     pos : new Vector(0, 0),
+        //     name : "background",
+        //     depth : 0,
+        //     color : new Color(1, 1, 1, 0.5)
+        // });
+
+        // backgroundTex.onload = checkSize;
 
         // Luxe.camera.bounds = new Rectangle(0, 0, background.size.x, background.size.y);
 
@@ -121,7 +155,7 @@ class Main extends luxe.Game {
                 depth : 1
             }); //enemy
 
-            enemyCollider = new Circle(enemy.pos.x, enemy.pos.y, 4);
+            enemyCollider = new Circle(enemy.pos.x, enemy.pos.y, 6);
             enemyCollider.name = enemy.name+"Collider";
             enemyColliderPool.push(enemyCollider);
 
@@ -129,6 +163,12 @@ class Main extends luxe.Game {
             enemyPool.push(enemy);
 
         } //enemyPool
+
+        scoreText = new Text({
+            text : "Score: " + score,
+            pos : new Vector(Luxe.screen.w/2, 30),
+            align : center
+        });
 
 
     } //ready
@@ -140,22 +180,26 @@ class Main extends luxe.Game {
     override function update( dt:Float ) {
         if(Luxe.input.inputdown('up')) {
                 player.pos.y -= moveSpeed * dt;
-            if(player.pos.y > 0) {
+            if(player.pos.y < 0) {
+                player.pos.y = 0;
             }
         }
         if(Luxe.input.inputdown('right')) {
                 player.pos.x += moveSpeed * dt;
-            if(player.pos.x < Luxe.screen.w) {
+            if(player.pos.x > Luxe.screen.w) {
+                player.pos.x = Luxe.screen.w;
             }
         }
         if(Luxe.input.inputdown('down')) {
                 player.pos.y += moveSpeed * dt; 
-            if(player.pos.y < Luxe.screen.h) {
+            if(player.pos.y > Luxe.screen.h) {
+                player.pos.y = Luxe.screen.h;
             }
         }
         if(Luxe.input.inputdown('left')) {
                 player.pos.x -= moveSpeed * dt;
-            if(player.pos.x > 0) {
+            if(player.pos.x < 0) {
+                player.pos.x = 0;
             }
         }
 
@@ -173,22 +217,24 @@ class Main extends luxe.Game {
             }
         }
 
-        cameraPosMid.x = Luxe.camera.pos.x + Luxe.camera.viewport.w / 2;
-        cameraPosMid.y = Luxe.camera.pos.y + Luxe.camera.viewport.h / 2;
+        scoreText.text = "Score: " + score;
+        
+        // cameraPosMid.x = Luxe.camera.pos.x + Luxe.camera.viewport.w / 2;
+        // cameraPosMid.y = Luxe.camera.pos.y + Luxe.camera.viewport.h / 2;
 
-        if(player.pos.x > cameraPosMid.x + cameraXBuffer) {
-            Luxe.camera.pos.x += 300 * dt;
-            // Luxe.camera.pos.x = Maths.lerp(Luxe.camera.pos.x, Luxe.camera.pos.x +10, 1.0);
-        }
-        if(player.pos.x < cameraPosMid.x - cameraXBuffer) {
-            Luxe.camera.pos.x -= 300 * dt;
-        }
-        if(player.pos.y > cameraPosMid.y + cameraYBuffer) {
-            Luxe.camera.pos.y += 300 * dt;
-        }
-        if(player.pos.y < cameraPosMid.y - cameraYBuffer) {
-            Luxe.camera.pos.y -= 300 * dt;
-        }
+        // if(player.pos.x > cameraPosMid.x + cameraXBuffer) {
+        //     Luxe.camera.pos.x += 300 * dt;
+        //     // Luxe.camera.pos.x = Maths.lerp(Luxe.camera.pos.x, Luxe.camera.pos.x +10, 1.0);
+        // }
+        // if(player.pos.x < cameraPosMid.x - cameraXBuffer) {
+        //     Luxe.camera.pos.x -= 300 * dt;
+        // }
+        // if(player.pos.y > cameraPosMid.y + cameraYBuffer) {
+        //     Luxe.camera.pos.y += 300 * dt;
+        // }
+        // if(player.pos.y < cameraPosMid.y - cameraYBuffer) {
+        //     Luxe.camera.pos.y -= 300 * dt;
+        // }
 
     } //update
 
@@ -228,20 +274,25 @@ class Main extends luxe.Game {
 
     function connect_input() {
         // add WASD and arrow keys to input
-        Luxe.input.add('up', Key.up);
-        Luxe.input.add('up', Key.key_w);
-        Luxe.input.add('right', Key.right);
-        Luxe.input.add('right', Key.key_d);
-        Luxe.input.add('down', Key.down);
-        Luxe.input.add('down', Key.key_s);
-        Luxe.input.add('left', Key.left);
-        Luxe.input.add('left', Key.key_a);
+        Luxe.input.bind_key('up', Key.up);
+        Luxe.input.bind_key('up', Key.key_w);
+        Luxe.input.bind_key('right', Key.right);
+        Luxe.input.bind_key('right', Key.key_d);
+        Luxe.input.bind_key('down', Key.down);
+        Luxe.input.bind_key('down', Key.key_s);
+        Luxe.input.bind_key('left', Key.left);
+        Luxe.input.bind_key('left', Key.key_a);
 
     } //connect_input
 
     override function onkeyup( e:KeyEvent ) {
         if(e.keycode == Key.escape) {
             Luxe.shutdown();
+        }
+
+        if(e.keycode == Key.space) {
+            machine.add(new GameOverState('gameOverState', 20 ));
+            machine.enable('gameOverState');
         }
 
     } //onkeyup

@@ -71,7 +71,7 @@ class EnemyComponent extends Component {
             trace("left");
         }
         if(wasHit) {
-            sprite.color = Color.random();
+            // sprite.color = Color.random();
             wasHit = false;
             speed = 100.0 * Math.random();
         }
