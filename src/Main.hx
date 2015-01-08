@@ -12,7 +12,6 @@ import luxe.Text;
 import luxe.States;
 
 
-
 class GameOverState extends State {
 
     var value : Int;
@@ -38,37 +37,47 @@ class GameOverState extends State {
 
 class Main extends luxe.Game {
 
+    // VARIABLES
+
+    // general
+    var mousePos : Vector;
+    public static var score : Int = 0;
+    var scoreText : Text;
+    var machine : States;
+
+    // camera
+    var cameraPosMid : Vector;
+    var cameraXBuffer : Int = 100;
+    var cameraYBuffer : Int = 100;
+
+    // background
     var backgroundTex : Texture;
     var background : Sprite;
     public static var backgroundSize : Vector;
+
+    // player
     var playerTex : Texture;
     public var player : Sprite;
     var reticuleTex : Texture;
     var reticule : Sprite;
     var reticuleDist : Float = 25.0;
+    var moveSpeed : Float = 400.0;
+    var playerIsDead : Bool = false;
+
+    // bullets
     var bulletTex : Texture;
     var bulletPool : Array<Sprite>;
     var bulletPoolSize : Int = 30;
-    var moveSpeed : Float = 400.0;
-    var mousePos : Vector;
-    public static var score : Int = 0;
-    var scoreText : Text;
-
-    var enemyPool : Array<Sprite>;
-    var enemyPoolSize : Int = 10;
-    var enemyCollider : Circle;
-    public static var enemyColliderPool : Array<Shape>;
-
     var isFiring : Bool = false;
     var nextFire : Float = 0.0;
     var fireRate : Float = 0.1;
     var currentBullet : Int = 0;
 
-    var cameraPosMid : Vector;
-    var cameraXBuffer : Int = 100;
-    var cameraYBuffer : Int = 100;
-
-    var machine : States;
+    // enemies
+    var enemyPool : Array<Sprite>;
+    var enemyPoolSize : Int = 10;
+    var enemyCollider : Circle;
+    public static var enemyColliderPool : Array<Shape>;
 
 
     override function config( config:AppConfig ) {
@@ -117,9 +126,11 @@ class Main extends luxe.Game {
             name : "player",
             depth : 1
         }); //player
+        player.add(new PlayerComponent);
 
         reticuleTex = Luxe.loadTexture("assets/reticule.png");
         reticule = new Sprite({
+            name : "reticule",
             texture : reticuleTex,
             pos : player.pos,
             depth : 1
@@ -256,6 +267,22 @@ class Main extends luxe.Game {
 
     } //fire
 
+    function playerDied() {
+        playerIsDead = true;
+        machine.add(new GameOverState('gameOverState', 20 ));
+        machine.enable('gameOverState');
+        player.destroy();
+        reticule.destroy();
+        //disable player movement/explode player
+        //zombies wander off
+        //if space bar is hit, restart
+
+    } //playerDied
+
+    function resetGame() {
+        trace("reset");
+    }//resetGame
+
     override function onmousemove( e:MouseEvent ) {
         mousePos = e.pos;
         mousePos = Luxe.camera.screen_point_to_world(mousePos);
@@ -285,14 +312,17 @@ class Main extends luxe.Game {
 
     } //connect_input
 
+
     override function onkeyup( e:KeyEvent ) {
         if(e.keycode == Key.escape) {
             Luxe.shutdown();
         }
 
         if(e.keycode == Key.space) {
-            machine.add(new GameOverState('gameOverState', 20 ));
-            machine.enable('gameOverState');
+                // playerDied();
+            if(playerIsDead) {
+                resetGame();
+            }
         }
 
     } //onkeyup
